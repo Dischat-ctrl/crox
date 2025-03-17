@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Chrome">
+
+    <!-- Icono para la pantalla de inicio -->
+    <link rel="apple-touch-icon" href="icono.png"> <!-- Asegúrate de tener un icono en la ruta especificada -->
+
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* Evita el scroll */
+        }
+
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white; /* Color de fondo del loader */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* Asegúrate de que esté por encima del iframe */
+            transition: opacity 0.5s ease; /* Transición para el fade out */
+        }
+
+        #loader.hidden {
+            opacity: 0;
+            pointer-events: none; /* Evita que se pueda interactuar con el loader */
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none; /* Oculta el iframe inicialmente */
+        }
+    </style>
+</head>
+<body>
+    <div id="loader">
+        <img src="icono.png" alt="Cargando..." width="10%"> <!-- Asegúrate de tener un icono en la ruta especificada -->
+    </div>
+    <iframe id="content" src="https://brockwires.moldeo.org" onload="hideLoader()"></iframe>
+
+    <script>
+        function hideLoader() {
+            const loader = document.getElementById('loader');
+            const iframe = document.getElementById('content');
+            loader.classList.add('hidden'); // Agrega la clase para el fade out
+            iframe.style.display = 'block'; // Muestra el iframe
+        }
+    </script>
+</body>
+</html>
