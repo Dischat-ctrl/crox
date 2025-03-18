@@ -57,9 +57,10 @@
         function hideLoader() {
             const loader = document.getElementById('loader');
             const iframe = document.getElementById('content');
-            loader.classList.add('hidden'); // Agrega la clase para el fade out
+
             iframe.style.display = 'block'; // Muestra el iframe
-            window.location.href = "https://brockwires.moldeo.org";
+            setTimeout(function() {            loader.classList.add('hidden'); // Agrega la clase para el fade out
+                                   window.location.href = "https://brockwires.moldeo.org";}, 10000) 
         }
     </script>
 </body>
