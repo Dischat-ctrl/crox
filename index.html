@@ -50,17 +50,19 @@
 <body>
     <div id="loader">
         <img src="icono.png" alt="Cargando..." width="10%"> <!-- Asegúrate de tener un icono en la ruta especificada -->
+            <input id="url" placeholder="google.com" onSubmit="hideLoader()">
     </div>
-    <input id="url" placeholder="google.com">
+
 
     <script>
         function hideLoader(url) {
+            const ur = document.getElementById('url');
             const loader = document.getElementById('loader');
             const iframe = document.getElementById('content');
 
             iframe.style.display = 'block'; // Muestra el iframe
             setTimeout(function() {            
-                window.location.href = "https://google.com"}, 5000);
+                window.location.href = "https://google.com"}, 1200);
         }
     </script>
 </body>
