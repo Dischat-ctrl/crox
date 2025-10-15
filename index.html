@@ -9,61 +9,399 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Chrome">
 
-    <!-- Icono para la pantalla de inicio -->
-    <link rel="apple-touch-icon" href="icono.png"> <!-- Asegúrate de tener un icono en la ruta especificada -->
-
     <style>
-        body, html {
+        * {
             margin: 0;
             padding: 0;
-            height: 100%;
-            overflow: hidden; /* Evita el scroll */
+            box-sizing: border-box;
         }
 
-        #loader {
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(138, 43, 226, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(75, 0, 130, 0.2) 0%, transparent 50%);
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        #container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+        }
+
+        #logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 50px;
+            opacity: 0;
+            animation: fadeInDown 0.8s ease forwards;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+        }
+
+        @keyframes fadeInDown {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+        }
+
+        .search-wrapper {
+            position: relative;
+            width: 90%;
+            max-width: 600px;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease 0.3s forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .glow-effect {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
+            background-size: 300% 300%;
+            border-radius: 50px;
+            opacity: 0;
+            filter: blur(10px);
+            transition: opacity 0.3s ease;
+            animation: glowRotate 3s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes glowRotate {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .search-wrapper:hover .glow-effect,
+        .search-wrapper:focus-within .glow-effect {
+            opacity: 0.6;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 20px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #333;
+        }
+
+        #searchInput::placeholder {
+            color: #999;
+            transition: all 0.3s ease;
+        }
+
+        #searchInput:focus {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 12px 48px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 1);
+        }
+
+        #searchInput:focus::placeholder {
+            transform: translateX(5px);
+            opacity: 0.6;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .search-wrapper:focus-within .search-icon {
+            opacity: 0.8;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: white; /* Color de fondo del loader */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 9999; /* Asegúrate de que esté por encima del iframe */
-            transition: opacity 0.5s ease; /* Transición para el fade out */
-        }
-
-        #loader.hidden {
+            z-index: 1000;
             opacity: 0;
-            pointer-events: none; /* Evita que se pueda interactuar con el loader */
+            pointer-events: none;
+            transition: opacity 0.5s ease;
         }
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: none; /* Oculta el iframe inicialmente */
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            color: white;
+            font-size: 18px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .hint {
+            margin-top: 30px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 1s ease 1s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            #logo {
+                width: 80px;
+                height: 80px;
+                margin-bottom: 30px;
+            }
+
+            #searchInput {
+                font-size: 16px;
+                padding: 16px 24px;
+            }
+
+            .search-wrapper {
+                width: 95%;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="loader">
-        <img src="icono.png" alt="Cargando..." width="10%"> <!-- Asegúrate de tener un icono en la ruta especificada -->
-            <input id="url" placeholder="google.com" onSubmit="hideLoader()">
+    <div class="particles" id="particles"></div>
+
+    <div id="container">
+        <svg id="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:rgb(255,255,255);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:rgb(200,200,255);stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="45" fill="url(#grad1)" opacity="0.9"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+            <path d="M 35 50 L 50 35 L 65 50 L 50 65 Z" fill="rgba(102, 126, 234, 0.8)"/>
+        </svg>
+
+        <div class="search-wrapper">
+            <div class="glow-effect"></div>
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Escribe una URL o búsqueda..."
+                autocomplete="off"
+                spellcheck="false">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+        </div>
+
+        <div class="hint">
+            Presiona <strong>Enter</strong> para navegar o buscar en Google
+        </div>
     </div>
 
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">NAVEGANDO...</div>
+    </div>
 
     <script>
-        function hideLoader(url) {
-            const ur = document.getElementById('url');
-            const loader = document.getElementById('loader');
-            const iframe = document.getElementById('content');
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
 
-            iframe.style.display = 'block'; // Muestra el iframe
-            setTimeout(function() {            
-                window.location.href = "https://google.com"}, 1200);
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
         }
+
+        function isValidURL(string) {
+            const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+            const domainPattern = /^[\da-z\.-]+\.([a-z\.]{2,6})$/;
+            
+            return urlPattern.test(string) || domainPattern.test(string);
+        }
+
+        function processInput(input) {
+            input = input.trim();
+            
+            if (!input) return null;
+
+            if (isValidURL(input)) {
+                if (!input.startsWith('http://') && !input.startsWith('https://')) {
+                    return 'https://' + input;
+                }
+                return input;
+            } else {
+                return 'https://www.google.com/search?q=' + encodeURIComponent(input);
+            }
+        }
+
+        function handleSearch() {
+            const input = document.getElementById('searchInput');
+            const value = input.value;
+            const url = processInput(value);
+
+            if (url) {
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                loadingOverlay.classList.add('active');
+
+                setTimeout(() => {
+                    window.location.href = url;
+                }, 800);
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleSearch();
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const value = e.target.value;
+            if (value) {
+                this.style.paddingRight = '60px';
+            } else {
+                this.style.paddingRight = '30px';
+            }
+        });
+
+        window.addEventListener('load', () => {
+            createParticles();
+            document.getElementById('searchInput').focus();
+        });
     </script>
 </body>
 </html>
