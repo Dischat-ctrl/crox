@@ -24,7 +24,7 @@
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff8800 0%, #fff100 100%);
             position: relative;
         }
 
@@ -232,6 +232,10 @@
             opacity: 1;
             pointer-events: all;
         }
+        .loading-overlay.non {
+            opacity: 0;
+            pointer-events: none;
+        }
 
         .loading-spinner {
             width: 60px;
@@ -376,9 +380,12 @@
             if (url) {
                 const loadingOverlay = document.getElementById('loadingOverlay');
                 loadingOverlay.classList.add('active');
+                loadingOverlay.classList.remove('non');
 
                 setTimeout(() => {
                     window.location.href = url;
+                    loadingOverlay.classList.add('non');
+                    loadingOverlay.classList.remove('active');
                 }, 800);
             }
         }
