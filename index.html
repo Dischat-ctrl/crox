@@ -51,16 +51,15 @@
     <div id="loader">
         <img src="icono.png" alt="Cargando..." width="10%"> <!-- Asegúrate de tener un icono en la ruta especificada -->
     </div>
-    <iframe id="content" src="https://google.com" onload="hideLoader()"></iframe>
+    <input id="url" placeholder="google.com">
 
     <script>
-        function hideLoader() {
+        function hideLoader(url) {
             const loader = document.getElementById('loader');
             const iframe = document.getElementById('content');
 
             iframe.style.display = 'block'; // Muestra el iframe
             setTimeout(function() {            
-                loader.classList.add('hidden'); // Agrega la clase para el fade out
                 window.location.href = "https://google.com"}, 5000);
         }
     </script>
