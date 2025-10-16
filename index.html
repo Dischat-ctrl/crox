@@ -1,0 +1,2308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Chrome">
+
+    <style>
+        :root {
+            --bg-start: #ff9900;
+            --bg-end: #fff900;
+            --text-color: rgba(255, 255, 255, 0.9);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-text: #333;
+        }
+
+        [data-theme="dark"] {
+            --text-color: rgba(255, 255, 255, 0.9);
+            --card-bg: rgba(30, 30, 30, 0.95);
+            --card-text: #ffffff;
+        }
+
+        [data-theme="light"] {
+            --text-color: rgba(0, 0, 0, 0.9);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-text: #333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            position: relative;
+            transition: background 0.5s ease;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 200, 100, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 220, 0, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 180, 50, 0.2) 0%, transparent 50%);
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        #container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        #logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 50px;
+            opacity: 0;
+            animation: fadeInDown 0.8s ease forwards;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+            border-radius: 20px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        @keyframes fadeInDown {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+        }
+
+        .search-wrapper {
+            position: relative;
+            width: 90%;
+            max-width: 600px;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease 0.3s forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .glow-effect {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ff6b00, #ffeb00, #ff9500, #ffe100);
+            background-size: 300% 300%;
+            border-radius: 50px;
+            opacity: 0;
+            filter: blur(10px);
+            transition: opacity 0.3s ease;
+            animation: glowRotate 3s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes glowRotate {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .search-wrapper:hover .glow-effect,
+        .search-wrapper:focus-within .glow-effect {
+            opacity: 0.6;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 20px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 50px;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--card-text);
+        }
+
+        #searchInput::placeholder {
+            color: #999;
+            transition: all 0.3s ease;
+        }
+
+        #searchInput:focus {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 12px 48px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            color: var(--card-text);
+        }
+
+        .settings-icon {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            color: var(--text-color);
+            z-index: 100;
+            background: transparent;
+            border: 2px solid var(--text-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .settings-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .settings-icon:hover {
+            opacity: 1;
+            transform: scale(1.1) rotate(90deg);
+            background: var(--text-color);
+        }
+        
+        .settings-icon:hover svg {
+            color: var(--card-bg);
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            color: white;
+            font-size: 18px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .hint {
+            margin-top: 30px;
+            color: var(--text-color);
+            font-size: 14px;
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 1s ease 1s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .bookmarks-section {
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 90%;
+            max-width: 800px;
+            opacity: 0;
+            animation: fadeIn 1s ease 1.2s forwards;
+        }
+
+        .bookmarks-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .bookmarks-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .bookmarks-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .bookmarks-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 3px;
+        }
+
+        .bookmark {
+            width: 80px;
+            height: 80px;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            animation: bookmarkAppear 0.4s ease;
+        }
+
+        @keyframes bookmarkAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .bookmark:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .bookmark-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .bookmark-name {
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--card-text);
+            text-align: center;
+            max-width: 70px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .bookmark-delete {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 0, 0, 0.8);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .bookmark:hover .bookmark-delete {
+            display: flex;
+        }
+
+        .bookmark-delete:hover {
+            background: rgba(255, 0, 0, 1);
+            transform: scale(1.1);
+        }
+
+        .add-bookmark {
+            width: 80px;
+            height: 80px;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px dashed rgba(128, 128, 128, 0.5);
+        }
+
+        .add-bookmark:hover {
+            transform: translateY(-5px) scale(1.05);
+            background: var(--card-bg);
+            border-color: rgba(128, 128, 128, 0.8);
+        }
+
+        .add-bookmark svg {
+            width: 40px;
+            height: 40px;
+            color: var(--card-text);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+            animation: fadeIn 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--card-text);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: var(--card-bg);
+            color: var(--card-text);
+        }
+
+        .modal-input:focus {
+            border-color: var(--bg-start);
+            box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-button.primary {
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            color: white;
+        }
+
+        .modal-button.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 153, 0, 0.3);
+        }
+
+        .modal-button.secondary {
+            background: rgba(128, 128, 128, 0.2);
+            color: var(--card-text);
+            border: 2px solid rgba(128, 128, 128, 0.3);
+        }
+
+        .modal-button.secondary:hover {
+            background: rgba(128, 128, 128, 0.3);
+        }
+
+        .theme-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        
+        .theme-selector::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .theme-selector::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+        }
+        
+        .theme-selector::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+        }
+
+        .theme-option {
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .theme-option.selected {
+            border-color: #333;
+            transform: scale(1.05);
+        }
+
+        .theme-option:hover {
+            transform: scale(1.05);
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-option {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .mode-option.selected {
+            border-color: var(--bg-start);
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            color: white;
+        }
+
+        .admin-panel {
+            background: #1a1a1a;
+            color: white;
+            padding: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #2a2a2a;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        .status-active { background: #00ff00; }
+        .status-inactive { background: #ff0000; }
+        .status-pending { background: #ffff00; }
+
+        .user-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn.accept { background: #00ff00; color: #000; }
+        .action-btn.reject { background: #ff0000; color: #fff; }
+        .action-btn.ban { background: #ff6600; color: #fff; }
+        .action-btn.refresh { background: #0084ff; color: #fff; }
+        .action-btn:hover { transform: scale(1.05); }
+
+        .admin-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            z-index: 3000;
+            display: none;
+            overflow: auto;
+        }
+
+        .admin-page.active {
+            display: block;
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .admin-border {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 4px solid transparent;
+            border-radius: 0;
+            pointer-events: none;
+            background: linear-gradient(90deg, 
+                #00ff00 0%, 
+                transparent 25%, 
+                transparent 50%, 
+                transparent 75%, 
+                #00ff00 100%
+            );
+            background-size: 200% 100%;
+            animation: borderGlow 3s linear infinite;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            padding: 4px;
+            box-shadow: inset 0 0 40px rgba(0, 255, 0, 0.3);
+            z-index: 10;
+        }
+
+        @keyframes borderGlow {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 200% 0%; }
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .admin-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #00ff00;
+            text-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .sort-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sort-btn {
+            padding: 10px 20px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            color: #00ff00;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .sort-btn:hover {
+            background: rgba(0, 255, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .sort-btn.active {
+            background: #00ff00;
+            color: #000;
+        }
+
+        .users-table {
+            position: relative;
+            z-index: 1;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 50px 1fr 150px 200px 200px;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(0, 255, 0, 0.1);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: #00ff00;
+        }
+
+        .user-row {
+            display: grid;
+            grid-template-columns: 50px 1fr 150px 200px 200px;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            align-items: center;
+        }
+
+        .user-row:hover {
+            background: rgba(0, 255, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        .user-status-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin: 0 auto;
+        }
+
+        .user-info {
+            color: #fff;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .user-details {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .user-status-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+
+        .status-pending { background: #ffeb00; color: #000; }
+        .status-approved { background: #00ff00; color: #000; }
+        .status-banned { background: #ff0000; color: #fff; }
+
+        .btn-close-admin {
+            padding: 12px 30px;
+            background: rgba(255, 0, 0, 0.2);
+            border: 2px solid #ff0000;
+            border-radius: 10px;
+            color: #ff0000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-close-admin:hover {
+            background: #ff0000;
+            color: #fff;
+        }
+
+        .btn-pause-refresh {
+            padding: 10px 20px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            color: #00ff00;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-pause-refresh:hover {
+            background: rgba(0, 255, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-pause-refresh.paused {
+            background: rgba(255, 153, 0, 0.2);
+            border-color: #ff9900;
+            color: #ff9900;
+        }
+
+        @media (max-width: 768px) {
+            #logo {
+                width: 80px;
+                height: 80px;
+                margin-bottom: 30px;
+            }
+
+            #searchInput {
+                font-size: 16px;
+                padding: 16px 24px;
+            }
+
+            .bookmark, .add-bookmark {
+                width: 70px;
+                height: 70px;
+            }
+
+            .theme-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+
+    <div class="settings-icon" onclick="openSettings()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v6m0 6v6m-6-6h6m6 0h-6M4.93 4.93l4.24 4.24m5.66 5.66l4.24 4.24M19.07 4.93l-4.24 4.24m-5.66 5.66l-4.24 4.24"></path>
+        </svg>
+    </div>
+
+    <div id="container">
+        <img id="logo" src="icono.png" alt="Logo" onclick="handleLogoClick()">
+
+        <div class="search-wrapper">
+            <div class="glow-effect"></div>
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Escribe una URL o búsqueda..."
+                autocomplete="off"
+                spellcheck="false">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+        </div>
+
+        <div class="hint">
+            Presiona <strong>Enter</strong> para navegar o buscar en Google
+        </div>
+
+        <div class="bookmarks-section">
+            <div class="bookmarks-container" id="bookmarksContainer">
+                <div class="add-bookmark" onclick="openBookmarkModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">NAVEGANDO...</div>
+    </div>
+
+    <div class="modal" id="bookmarkModal">
+        <div class="modal-content">
+            <div class="modal-title">Agregar Marcador</div>
+            <input type="text" id="bookmarkName" class="modal-input" placeholder="Nombre (opcional)">
+            <input type="text" id="bookmarkUrl" class="modal-input" placeholder="URL (ej: google.com)" required>
+            <div class="modal-buttons">
+                <button class="modal-button secondary" onclick="closeBookmarkModal()">Cancelar</button>
+                <button class="modal-button primary" onclick="saveBookmark()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-title">Ajustes</div>
+            
+            <h3 style="margin-bottom: 10px; color: #666;">Tema de Color</h3>
+            <div class="theme-selector">
+                <div class="theme-option" style="background: linear-gradient(135deg, #ff9900, #fff900);" onclick="changeTheme('yellow', '#ff9900', '#fff900')">Amarillo</div>
+                <div class="theme-option" style="background: linear-gradient(135deg, #ff0000, #ff6b6b);" onclick="changeTheme('red', '#ff0000', '#ff6b6b')">Rojo</div>
+                <div class="theme-option" style="background: linear-gradient(135deg, #667eea, #764ba2);" onclick="changeTheme('purple', '#667eea', '#764ba2')">Morado</div>
+                <div class="theme-option" style="background: linear-gradient(135deg, #00c853, #64dd17);" onclick="changeTheme('green', '#00c853', '#64dd17')">Verde</div>
+                <div class="theme-option" style="background: linear-gradient(135deg, #0084ff, #00d4ff);" onclick="changeTheme('blue', '#0084ff', '#00d4ff')">Azul</div>
+                <div class="theme-option" style="background: linear-gradient(135deg, #2c2c2c, #000000);" onclick="changeTheme('black', '#2c2c2c', '#000000')">Negro</div>
+                <div class="theme-option" style="background: linear-gradient(135deg, #ff6ec7, #ff0080);" onclick="changeTheme('pink', '#ff6ec7', '#ff0080')">Rosa</div>
+                <div class="theme-option" style="background: linear-gradient(135deg, #f857a6, #ff5858);" onclick="changeTheme('coral', '#f857a6', '#ff5858')">Coral</div>
+                <div class="theme-option" style="background: linear-gradient(135deg, #00f2fe, #4facfe);" onclick="changeTheme('cyan', '#00f2fe', '#4facfe')">Cian</div>
+                <div class="theme-option" style="background: linear-gradient(135deg, #fa709a, #fee140);" onclick="changeTheme('sunset', '#fa709a', '#fee140')">Atardecer</div>
+                <div class="theme-option" style="background: linear-gradient(135deg, #30cfd0, #330867);" onclick="changeTheme('ocean', '#30cfd0', '#330867')">Océano</div>
+                <div class="theme-option" style="background: linear-gradient(135deg, #a8edea, #fed6e3);" onclick="changeTheme('pastel', '#a8edea', '#fed6e3')">Pastel</div>
+            </div>
+
+            <h3 style="margin-bottom: 10px; margin-top: 20px; color: #666;">Modo de Color</h3>
+            <div class="mode-selector">
+                <div class="mode-option" onclick="changeColorMode('auto')">Automático</div>
+                <div class="mode-option" onclick="changeColorMode('light')">Claro</div>
+                <div class="mode-option" onclick="changeColorMode('dark')">Oscuro</div>
+            </div>
+
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                <h3 style="margin-bottom: 10px; color: #d32f2f;">Zona de Peligro</h3>
+                <p style="font-size: 14px; color: #666; margin-bottom: 15px;">Esta acción eliminará tu cuenta de forma permanente.</p>
+                <button class="modal-button" onclick="deleteMyAccount()" style="background: #d32f2f; color: white; width: 100%;">Borrar Todo</button>
+            </div>
+
+            <div class="modal-buttons" style="margin-top: 20px;">
+                <button class="modal-button primary" onclick="closeSettings()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <div class="modal-title">Registro de Usuario</div>
+            <p style="text-align: center; color: #666; margin-bottom: 20px;">Por favor ingresa tu nombre para continuar</p>
+            <input type="text" id="registerName" class="modal-input" placeholder="Tu nombre" required>
+            <div class="modal-buttons">
+                <button class="modal-button primary" onclick="submitRegistration()">Enviar Solicitud</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="waitingModal">
+        <div class="modal-content">
+            <div class="modal-title">Esperando Aprobación</div>
+            <p id="waitingMessage" style="text-align: center; color: #666; margin-bottom: 20px;">Tu solicitud ha sido enviada. Espera la aprobación del administrador.</p>
+            <div style="text-align: center; margin: 20px 0;">
+                <div class="loading-spinner" style="display: inline-block;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="rejectedModal">
+        <div class="modal-content">
+            <div class="modal-title">Solicitud Rechazada</div>
+            <p id="rejectionMessage" style="text-align: center; color: #ff0000; margin-bottom: 20px;"></p>
+            <div class="modal-buttons">
+                <button class="modal-button primary" onclick="retryRegistration()">Intentar de Nuevo</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="bannedModal">
+        <div class="modal-content">
+            <div class="modal-title">Acceso Bloqueado</div>
+            <p id="banInfo" style="text-align: center; color: #ff0000; margin-bottom: 20px;">Has sido bloqueado. Ingresa el código de desbaneo si tienes uno.</p>
+            <input style="display:none;" type="text" id="unbanCode" class="modal-input" placeholder="Código de desbaneo">
+            <div class="modal-buttons"  style="display:none;">
+                <button class="modal-button primary" onclick="submitUnbanCode()">Verificar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="adminPasswordModal">
+        <div class="modal-content">
+            <div class="modal-title">Panel de Administración</div>
+            <input type="password" id="adminPassword" class="modal-input" placeholder="Contraseña de administrador">
+            <div class="modal-buttons">
+                <button class="modal-button secondary" onclick="closeAdminPasswordModal()">Cancelar</button>
+                <button class="modal-button primary" onclick="verifyAdminPassword()">Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-page" id="adminPanel">
+        <div class="admin-border"></div>
+        <div class="admin-container">
+            <div class="admin-header">
+                <div class="admin-title">⚙️ Panel de Administración</div>
+                <div class="admin-controls">
+                    <button class="btn-pause-refresh" onclick="toggleAutoRefresh()" id="pauseBtn">⏸ Pausar</button>
+                    <div style="color: #00ff00; font-size: 14px;" id="autoRefreshIndicator">🔄 Auto-refresh: 5s</div>
+                    <button class="btn-close-admin" onclick="closeAdminPanel()">✕ Cerrar</button>
+                </div>
+            </div>
+
+            <div class="sort-controls">
+                <button class="sort-btn active" onclick="sortUsers('name')">Ordenar por Nombre</button>
+                <button class="sort-btn" onclick="sortUsers('activity')">Ordenar por Actividad</button>
+                <button class="sort-btn" onclick="sortUsers('status')">Ordenar por Estado</button>
+            </div>
+
+            <div class="users-table">
+                <div class="table-header">
+                    <div style="text-align: center;">●</div>
+                    <div>Usuario</div>
+                    <div>Estado</div>
+                    <div>Última Actividad</div>
+                    <div style="text-align: center;">Acciones</div>
+                </div>
+                <div id="usersList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="rejectMessageModal">
+        <div class="modal-content">
+            <div class="modal-title">Mensaje de Rechazo</div>
+            <textarea id="rejectMessage" class="modal-input" style="min-height: 100px; resize: vertical;" placeholder="Escribe el motivo del rechazo..."></textarea>
+            <div class="modal-buttons">
+                <button class="modal-button secondary" onclick="closeRejectMessageModal()">Cancelar</button>
+                <button class="modal-button primary" onclick="confirmReject()">Rechazar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="banModal">
+        <div class="modal-content">
+            <div class="modal-title">Banear Usuario</div>
+            <div class="mode-selector">
+                <div class="mode-option" onclick="selectBanType('temp')">Temporal</div>
+                <div class="mode-option" onclick="selectBanType('perm')">Permanente</div>
+            </div>
+            <input type="number" id="banDuration" class="modal-input" placeholder="Duración en días (solo temporal)" style="display: none;">
+            <textarea id="banReason" class="modal-input" style="min-height: 100px; resize: vertical;" placeholder="Motivo del baneo..."></textarea>
+            <div class="modal-buttons">
+                <button class="modal-button secondary" onclick="closeBanModal()">Cancelar</button>
+                <button class="modal-button primary" onclick="confirmBan()">Banear</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+/*
+═══════════════════════════════════════════════════════════════
+API ENDPOINTS DOCUMENTATION
+═══════════════════════════════════════════════════════════════
+
+IMPORTANT: Replace 'YOUR_API_URL' with your actual API endpoint URL
+
+BASE URL: YOUR_API_URL
+
+ENDPOINTS REQUIRED:
+
+1. USER REGISTRATION
+   POST /api/register
+   Body: { 
+     deviceId: string,
+     username: string,
+     timestamp: Date
+   }
+   Response: {
+     success: boolean,
+     userId: string,
+     status: 'pending' | 'approved' | 'rejected' | 'banned'
+   }
+
+2. CHECK USER STATUS
+   GET /api/user/status?deviceId={deviceId}
+   Response: {
+     status: 'pending' | 'approved' | 'rejected' | 'banned',
+     userId: string,
+     username: string,
+     rejectionMessage?: string,
+     rejectionCount?: number,
+     banReason?: string,
+     banType?: 'temp' | 'perm',
+     banUntil?: Date
+   }
+
+3. GET ALL USERS (Admin Only)
+   GET /api/admin/users
+   Headers: { Authorization: 'Bearer {adminToken}' }
+   Response: {
+     users: [{
+       userId: string,
+       username: string,
+       deviceId: string,
+       status: 'pending' | 'approved' | 'rejected' | 'banned',
+       isActive: boolean,
+       lastActive: Date,
+       registeredAt: Date,
+       rejectionCount: number
+     }]
+   }
+
+4. APPROVE USER (Admin Only)
+   POST /api/admin/approve
+   Headers: { Authorization: 'Bearer {adminToken}' }
+   Body: { userId: string }
+   Response: { success: boolean }
+
+5. REJECT USER (Admin Only)
+   POST /api/admin/reject
+   Headers: { Authorization: 'Bearer {adminToken}' }
+   Body: { 
+     userId: string,
+     message: string
+   }
+   Response: { success: boolean }
+
+6. BAN USER (Admin Only)
+   POST /api/admin/ban
+   Headers: { Authorization: 'Bearer {adminToken}' }
+   Body: {
+     userId: string,
+     type: 'temp' | 'perm',
+     duration?: number (days, for temp ban),
+     reason: string
+   }
+   Response: { success: boolean }
+
+7. UNBAN USER (Admin Only)
+   POST /api/admin/unban
+   Headers: { Authorization: 'Bearer {adminToken}' }
+   Body: { userId: string }
+   Response: { success: boolean }
+
+8. VERIFY UNBAN CODE
+   POST /api/unban/verify
+   Body: {
+     deviceId: string,
+     code: string
+   }
+   Response: { 
+     success: boolean,
+     userId?: string
+   }
+
+9. ADMIN LOGIN
+   POST /api/admin/login
+   Body: { password: string }
+   Response: {
+     success: boolean,
+     token: string,
+     expiresIn: number
+   }
+
+10. UPDATE USER ACTIVITY
+    POST /api/user/activity
+    Body: {
+      userId: string,
+      timestamp: Date
+    }
+    Response: { success: boolean }
+
+11. GENERATE UNBAN CODE (Admin Only)
+    POST /api/admin/generate-unban-code
+    Headers: { Authorization: 'Bearer {adminToken}' }
+    Body: { deviceId: string }
+    Response: { 
+      success: boolean,
+      code: string
+    }
+
+═══════════════════════════════════════════════════════════════
+*/
+
+        const API_URL = 'https://ytapi.alwaysdata.net';
+        
+        const CONFIG = {
+            adminPasswordStorageKey: 'chrome_admin_session',
+            userSessionKey: 'chrome_user_session',
+            settingsKey: 'chrome_settings',
+            bookmarksKey: 'bookmarks',
+            deviceIdKey: 'chrome_device_id',
+            adminSessionDays: 7,
+            userSessionDays: 730,
+            logoClickThreshold: 5,
+            logoClickTimeout: 2000
+        };
+
+        let logoClickCount = 0;
+        let logoClickTimer = null;
+        let currentRejectUserId = null;
+        let currentBanUserId = null;
+        let currentBanType = 'temp';
+        let banCheckInterval = null;
+        let activityUpdateInterval = null;
+        let currentUserId = null;
+        let adminRefreshInterval = null;
+        let currentSortBy = 'name';
+        let usersData = [];
+        let isRefreshPaused = false;
+
+        function generateDeviceId() {
+            return 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function getDeviceId() {
+            let deviceId = localStorage.getItem(CONFIG.deviceIdKey);
+            if (!deviceId) {
+                deviceId = generateDeviceId();
+                localStorage.setItem(CONFIG.deviceIdKey, deviceId);
+            }
+            return deviceId;
+        }
+
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        function isValidURL(string) {
+            const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+            const domainPattern = /^[\da-z\.-]+\.([a-z\.]{2,6})$/;
+            
+            return urlPattern.test(string) || domainPattern.test(string);
+        }
+
+        function processInput(input) {
+            input = input.trim();
+            
+            if (!input) return null;
+
+            if (isValidURL(input)) {
+                if (!input.startsWith('http://') && !input.startsWith('https://')) {
+                    return 'https://' + input;
+                }
+                return input;
+            } else {
+                return 'https://www.google.com/search?q=' + encodeURIComponent(input);
+            }
+        }
+
+        function handleSearch() {
+            const input = document.getElementById('searchInput');
+            const value = input.value;
+            const url = processInput(value);
+
+            if (url) {
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                loadingOverlay.classList.add('active');
+                
+                window.location.href = url;
+            }
+        }
+
+        function getDomain(url) {
+            try {
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+                const urlObj = new URL(url);
+                return urlObj.hostname;
+            } catch (e) {
+                return url;
+            }
+        }
+
+        function getFaviconUrl(url) {
+            const domain = getDomain(url);
+            return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+        }
+
+        function loadBookmarks() {
+            const bookmarks = JSON.parse(localStorage.getItem(CONFIG.bookmarksKey) || '[]');
+            const container = document.getElementById('bookmarksContainer');
+            
+            container.innerHTML = '';
+            
+            bookmarks.forEach((bookmark, index) => {
+                const bookmarkEl = document.createElement('div');
+                bookmarkEl.className = 'bookmark';
+                bookmarkEl.onclick = () => navigateToBookmark(bookmark.url);
+                
+                const faviconUrl = getFaviconUrl(bookmark.url);
+                const displayName = bookmark.name || getDomain(bookmark.url);
+                
+                bookmarkEl.innerHTML = `
+                    <img class="bookmark-icon" src="${faviconUrl}" alt="${displayName}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23ff9900%22/><text x=%2250%22 y=%2260%22 font-size=%2250%22 text-anchor=%22middle%22 fill=%22white%22>${displayName.charAt(0).toUpperCase()}</text></svg>'">
+                    <div class="bookmark-name">${displayName}</div>
+                    <div class="bookmark-delete" onclick="event.stopPropagation(); deleteBookmark(${index})">×</div>
+                `;
+                
+                container.appendChild(bookmarkEl);
+            });
+            
+            const addBtn = document.createElement('div');
+            addBtn.className = 'add-bookmark';
+            addBtn.onclick = openBookmarkModal;
+            addBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            `;
+            container.appendChild(addBtn);
+        }
+
+        function navigateToBookmark(url) {
+            const fullUrl = processInput(url);
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.classList.add('active');
+
+            window.location.href = fullUrl;
+        }
+
+        function openBookmarkModal() {
+            document.getElementById('bookmarkModal').classList.add('active');
+            document.getElementById('bookmarkName').value = '';
+            document.getElementById('bookmarkUrl').value = '';
+            document.getElementById('bookmarkUrl').focus();
+        }
+
+        function closeBookmarkModal() {
+            document.getElementById('bookmarkModal').classList.remove('active');
+        }
+
+        function saveBookmark() {
+            const name = document.getElementById('bookmarkName').value.trim();
+            const url = document.getElementById('bookmarkUrl').value.trim();
+
+            if (!url) {
+                alert('Por favor ingresa una URL');
+                return;
+            }
+
+            const bookmarks = JSON.parse(localStorage.getItem(CONFIG.bookmarksKey) || '[]');
+            bookmarks.push({ name, url });
+            localStorage.setItem(CONFIG.bookmarksKey, JSON.stringify(bookmarks));
+
+            closeBookmarkModal();
+            loadBookmarks();
+        }
+
+        function deleteBookmark(index) {
+            const bookmarks = JSON.parse(localStorage.getItem(CONFIG.bookmarksKey) || '[]');
+            bookmarks.splice(index, 1);
+            localStorage.setItem(CONFIG.bookmarksKey, JSON.stringify(bookmarks));
+            loadBookmarks();
+        }
+
+        function openSettings() {
+            const settings = loadSettings();
+            document.getElementById('settingsModal').classList.add('active');
+            
+            document.querySelectorAll('.theme-option').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.mode-option').forEach(el => el.classList.remove('selected'));
+            
+            const themeElements = document.querySelectorAll('.theme-option');
+            const themes = ['yellow', 'red', 'purple', 'green', 'blue', 'black', 'pink', 'coral', 'cyan', 'sunset', 'ocean', 'pastel'];
+            themes.forEach((theme, index) => {
+                if (theme === settings.theme) {
+                    themeElements[index].classList.add('selected');
+                }
+            });
+            
+            const modeElements = document.querySelectorAll('.mode-option');
+            const modes = ['auto', 'light', 'dark'];
+            modes.forEach((mode, index) => {
+                if (mode === settings.colorMode) {
+                    modeElements[index].classList.add('selected');
+                }
+            });
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+        
+        async function deleteMyAccount() {
+            if (!confirm('¿Estás completamente seguro? Esta acción eliminará tu cuenta de forma permanente y no podrá deshacerse.')) {
+                return;
+            }
+            
+            if (!confirm('Esta es tu última advertencia. ¿Realmente deseas eliminar tu cuenta?')) {
+                return;
+            }
+            
+            const deviceId = getDeviceId();
+            
+            try {
+                const response = await fetch(`${API_URL}/api/user/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        deviceId,
+                        userId: currentUserId 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.removeItem(CONFIG.userSessionKey);
+                    localStorage.removeItem(CONFIG.deviceIdKey);
+                    alert('Tu cuenta ha sido eliminada exitosamente.');
+                    window.location.reload();
+                } else {
+                    alert('Error al eliminar la cuenta: ' + (data.message || 'Error desconocido'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al eliminar la cuenta');
+            }
+        }
+
+        function loadSettings() {
+            const defaultSettings = {
+                theme: 'yellow',
+                colorMode: 'auto',
+                bgStart: '#ff9900',
+                bgEnd: '#fff900'
+            };
+            
+            const saved = localStorage.getItem(CONFIG.settingsKey);
+            return saved ? JSON.parse(saved) : defaultSettings;
+        }
+
+        function saveSettings(settings) {
+            localStorage.setItem(CONFIG.settingsKey, JSON.stringify(settings));
+        }
+
+        function changeTheme(theme, start, end) {
+            const settings = loadSettings();
+            settings.theme = theme;
+            settings.bgStart = start;
+            settings.bgEnd = end;
+            saveSettings(settings);
+            applySettings(settings);
+            
+            document.querySelectorAll('.theme-option').forEach(el => el.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        function changeColorMode(mode) {
+            const settings = loadSettings();
+            settings.colorMode = mode;
+            saveSettings(settings);
+            applySettings(settings);
+            
+            document.querySelectorAll('.mode-option').forEach(el => el.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        function applySettings(settings) {
+            document.documentElement.style.setProperty('--bg-start', settings.bgStart);
+            document.documentElement.style.setProperty('--bg-end', settings.bgEnd);
+            
+            if (settings.colorMode === 'auto') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+            } else {
+                document.body.setAttribute('data-theme', settings.colorMode);
+            }
+        }
+
+        function handleLogoClick() {
+            logoClickCount++;
+            
+            if (logoClickTimer) {
+                clearTimeout(logoClickTimer);
+            }
+            
+            if (logoClickCount >= CONFIG.logoClickThreshold) {
+                logoClickCount = 0;
+                openAdminPasswordModal();
+                return;
+            }
+            
+            logoClickTimer = setTimeout(() => {
+                logoClickCount = 0;
+            }, CONFIG.logoClickTimeout);
+        }
+
+        function openAdminPasswordModal() {
+            const session = localStorage.getItem(CONFIG.adminPasswordStorageKey);
+            if (session) {
+                const data = JSON.parse(session);
+                if (new Date(data.expires) > new Date()) {
+                    openAdminPanelDirect();
+                    return;
+                }
+            }
+            
+            document.getElementById('adminPasswordModal').classList.add('active');
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('adminPassword').focus();
+        }
+
+        function closeAdminPasswordModal() {
+            document.getElementById('adminPasswordModal').classList.remove('active');
+        }
+
+        async function verifyAdminPassword() {
+            const password = document.getElementById('adminPassword').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const expires = new Date();
+                    expires.setDate(expires.getDate() + CONFIG.adminSessionDays);
+                    
+                    localStorage.setItem(CONFIG.adminPasswordStorageKey, JSON.stringify({
+                        token: data.token,
+                        expires: expires.toISOString()
+                    }));
+                    
+                    closeAdminPasswordModal();
+                    openAdminPanelDirect();
+                } else {
+                    alert('Contraseña incorrecta');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al verificar la contraseña');
+            }
+        }
+
+        async function openAdminPanelDirect() {
+            document.getElementById('adminPanel').classList.add('active');
+            loadUsers();
+            startAdminAutoRefresh();
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('adminPanel').classList.remove('active');
+            stopAdminAutoRefresh();
+        }
+
+        function startAdminAutoRefresh() {
+            if (adminRefreshInterval) {
+                clearInterval(adminRefreshInterval);
+            }
+            isRefreshPaused = false;
+            document.getElementById('pauseBtn').textContent = '⏸ Pausar';
+            document.getElementById('pauseBtn').classList.remove('paused');
+            adminRefreshInterval = setInterval(() => {
+                if (!isRefreshPaused) {
+                    loadUsers();
+                }
+            }, 5000);
+        }
+
+        function stopAdminAutoRefresh() {
+            if (adminRefreshInterval) {
+                clearInterval(adminRefreshInterval);
+                adminRefreshInterval = null;
+            }
+        }
+
+        function toggleAutoRefresh() {
+            isRefreshPaused = !isRefreshPaused;
+            const pauseBtn = document.getElementById('pauseBtn');
+            const indicator = document.getElementById('autoRefreshIndicator');
+            
+            if (isRefreshPaused) {
+                pauseBtn.textContent = '▶ Reanudar';
+                pauseBtn.classList.add('paused');
+                indicator.textContent = '⏸ Pausado';
+                indicator.style.color = '#ff9900';
+            } else {
+                pauseBtn.textContent = '⏸ Pausar';
+                pauseBtn.classList.remove('paused');
+                indicator.textContent = '🔄 Auto-refresh: 5s';
+                indicator.style.color = '#00ff00';
+            }
+        }
+
+        function sortUsers(sortBy) {
+            currentSortBy = sortBy;
+            
+            document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+            
+            if (sortBy === 'name') {
+                document.querySelector('.sort-btn:nth-child(1)').classList.add('active');
+                usersData.sort((a, b) => a.username.localeCompare(b.username));
+            } else if (sortBy === 'activity') {
+                document.querySelector('.sort-btn:nth-child(2)').classList.add('active');
+                usersData.sort((a, b) => new Date(b.lastActive) - new Date(a.lastActive));
+            } else if (sortBy === 'status') {
+                document.querySelector('.sort-btn:nth-child(3)').classList.add('active');
+                const statusOrder = { 'pending': 0, 'approved': 1, 'banned': 2 };
+                usersData.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+            }
+            
+            renderUsers();
+        }
+
+        function renderUsers() {
+            const usersList = document.getElementById('usersList');
+            
+            if (usersData.length === 0) {
+                usersList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No hay usuarios registrados</p>';
+                return;
+            }
+            
+            const existingRows = usersList.querySelectorAll('.user-row');
+            const existingIds = Array.from(existingRows).map(row => row.dataset.userId);
+            const newIds = usersData.map(user => user.userId);
+            
+            existingRows.forEach(row => {
+                if (!newIds.includes(row.dataset.userId)) {
+                    row.remove();
+                }
+            });
+            
+            usersData.forEach((user, index) => {
+                const statusDotClass = user.status === 'pending' ? 'status-pending' : 
+                                   user.isActive ? 'status-active' : 'status-inactive';
+                
+                const statusBadgeClass = user.status === 'pending' ? 'status-pending' : 
+                                    user.status === 'approved' ? 'status-approved' : 'status-banned';
+                
+                let existingRow = usersList.querySelector(`[data-user-id="${user.userId}"]`);
+                
+                const userHTML = `
+                    <div>
+                        <div class="user-status-dot ${statusDotClass}"></div>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">${user.username}</div>
+                        <div class="user-details">Rechazos: ${user.rejectionCount}</div>
+                    </div>
+                    <div>
+                        <div class="user-status-badge ${statusBadgeClass}">${user.status}</div>
+                    </div>
+                    <div class="user-info">
+                        <div>${new Date(user.lastActive).toLocaleDateString()}</div>
+                        <div class="user-details">${new Date(user.lastActive).toLocaleTimeString()}</div>
+                    </div>
+                    <div style="display: flex; gap: 8px; justify-content: center;">
+                        ${user.status === 'pending' ? `
+                            <button class="action-btn accept" onclick="approveUser(&quot;${user.userId}&quot;)">✓</button>
+                            <button class="action-btn reject" onclick="openRejectModal(&quot;${user.userId}&quot;)">✗</button>
+                        ` : ''}
+                        ${user.status === 'approved' ? `
+                            <button class="action-btn ban" onclick="openBanModal(&quot;${user.userId}&quot;)">Ban</button>
+                        ` : ''}
+                        ${user.status === 'banned' ? `
+                            <button class="action-btn accept" onclick="unbanUser(&quot;${user.userId}&quot;)">Unban</button>
+                        ` : ''}
+                        <button class="action-btn reject" onclick="deleteUser(&quot;${user.userId}&quot;)" style="background: #d32f2f;">🗑</button>
+                    </div>
+                `;
+                
+                if (existingRow) {
+                    if (existingRow.innerHTML !== userHTML) {
+                        existingRow.innerHTML = userHTML;
+                    }
+                } else {
+                    const userRow = document.createElement('div');
+                    userRow.className = 'user-row';
+                    userRow.dataset.userId = user.userId;
+                    userRow.innerHTML = userHTML;
+                    usersList.appendChild(userRow);
+                }
+            });
+            
+            const rows = Array.from(usersList.querySelectorAll('.user-row'));
+            usersData.forEach((user, index) => {
+                const row = usersList.querySelector(`[data-user-id="${user.userId}"]`);
+                if (row && rows.indexOf(row) !== index) {
+                    if (index === 0) {
+                        usersList.insertBefore(row, usersList.firstChild);
+                    } else {
+                        const prevUser = usersData[index - 1];
+                        const prevRow = usersList.querySelector(`[data-user-id="${prevUser.userId}"]`);
+                        if (prevRow) {
+                            usersList.insertBefore(row, prevRow.nextSibling);
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadUsers() {
+            const sessionData = JSON.parse(localStorage.getItem(CONFIG.adminPasswordStorageKey));
+            const usersList = document.getElementById('usersList');
+            
+            if (!sessionData || !sessionData.token) {
+                usersList.innerHTML = '<p style="color: #ff0000; text-align: center;">Error: No hay sesión de administrador válida</p>';
+                return;
+            }
+            
+            if (new Date(sessionData.expires) <= new Date()) {
+                usersList.innerHTML = '<p style="color: #ff0000; text-align: center;">Sesión expirada. Por favor, vuelve a iniciar sesión.</p>';
+                localStorage.removeItem(CONFIG.adminPasswordStorageKey);
+                setTimeout(() => {
+                    closeAdminPanel();
+                    openAdminPasswordModal();
+                }, 2000);
+                return;
+            }
+            
+            try {
+                usersList.innerHTML = '<p style="text-align: center; color: #999;">Cargando usuarios...</p>';
+                
+                console.log('Enviando petición a:', `${API_URL}/api/admin/users`);
+                console.log('Token (primeros 20 caracteres):', sessionData.token.substring(0, 20) + '...');
+                console.log('Token expira:', sessionData.expires);
+                
+                const response = await fetch(`${API_URL}/api/admin/users`, {
+                    method: 'GET',
+                    headers: { 
+                        'Authorization': `Bearer ${sessionData.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Respuesta del servidor - Status:', response.status);
+                console.log('Respuesta del servidor - Headers:', Object.fromEntries(response.headers.entries()));
+                
+                if (response.status === 403) {
+                    const errorText = await response.text();
+                    console.log('Mensaje de error 403:', errorText);
+                    
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        console.log('Error parseado:', errorData);
+                        usersList.innerHTML = `<p style="color: #ff0000; text-align: center;">Error 403: ${errorData.message || errorData.error || 'Acceso denegado'}<br><br>Puede que necesites volver a iniciar sesión.</p>`;
+                    } catch {
+                        usersList.innerHTML = `<p style="color: #ff0000; text-align: center;">Error 403: ${errorText}<br><br>Puede que necesites volver a iniciar sesión.</p>`;
+                    }
+                    
+                    return;
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Datos recibidos:', data);
+                
+                if (!data.users || data.users.length === 0) {
+                    usersData = [];
+                    usersList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No hay usuarios registrados</p>';
+                    return;
+                }
+                
+                usersData = data.users;
+                sortUsers(currentSortBy);
+            } catch (error) {
+                console.error('Error detallado al cargar usuarios:', error);
+                console.error('Error message:', error.message);
+                console.error('Error stack:', error.stack);
+                usersList.innerHTML = `<p style="color: #ff0000; text-align: center;">Error al cargar usuarios: ${error.message}<br><br>Verifica que el API esté funcionando correctamente.</p>`;
+            }
+        }
+
+        async function approveUser(userId) {
+            const sessionData = JSON.parse(localStorage.getItem(CONFIG.adminPasswordStorageKey));
+            
+            try {
+                await fetch(`${API_URL}/api/admin/approve`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionData.token}`
+                    },
+                    body: JSON.stringify({ userId })
+                });
+                
+                loadUsers();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function openRejectModal(userId) {
+            currentRejectUserId = userId;
+            document.getElementById('rejectMessageModal').classList.add('active');
+            document.getElementById('rejectMessage').value = '';
+            document.getElementById('rejectMessage').focus();
+        }
+
+        function closeRejectMessageModal() {
+            document.getElementById('rejectMessageModal').classList.remove('active');
+            currentRejectUserId = null;
+        }
+
+        async function confirmReject() {
+            const message = document.getElementById('rejectMessage').value.trim();
+            const sessionData = JSON.parse(localStorage.getItem(CONFIG.adminPasswordStorageKey));
+            
+            try {
+                await fetch(`${API_URL}/api/admin/reject`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionData.token}`
+                    },
+                    body: JSON.stringify({ 
+                        userId: currentRejectUserId,
+                        message 
+                    })
+                });
+                
+                closeRejectMessageModal();
+                loadUsers();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        async function deleteUser(userId) {
+            if (!confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
+                return;
+            }
+            
+            const sessionData = JSON.parse(localStorage.getItem(CONFIG.adminPasswordStorageKey));
+            
+            try {
+                await fetch(`${API_URL}/api/admin/delete`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionData.token}`
+                    },
+                    body: JSON.stringify({ userId })
+                });
+                
+                loadUsers();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al eliminar usuario');
+            }
+        }
+
+        function openBanModal(userId) {
+            currentBanUserId = userId;
+            document.getElementById('banModal').classList.add('active');
+            document.getElementById('banReason').value = '';
+            selectBanType('temp');
+        }
+
+        function closeBanModal() {
+            document.getElementById('banModal').classList.remove('active');
+            currentBanUserId = null;
+        }
+
+        function selectBanType(type) {
+            currentBanType = type;
+            document.querySelectorAll('#banModal .mode-option').forEach(el => el.classList.remove('selected'));
+            event.target.classList.add('selected');
+            
+            document.getElementById('banDuration').style.display = type === 'temp' ? 'block' : 'none';
+        }
+
+        async function confirmBan() {
+            const reason = document.getElementById('banReason').value.trim();
+            const duration = currentBanType === 'temp' ? parseInt(document.getElementById('banDuration').value) : null;
+            const sessionData = JSON.parse(localStorage.getItem(CONFIG.adminPasswordStorageKey));
+            
+            try {
+                await fetch(`${API_URL}/api/admin/ban`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionData.token}`
+                    },
+                    body: JSON.stringify({ 
+                        userId: currentBanUserId,
+                        type: currentBanType,
+                        duration,
+                        reason
+                    })
+                });
+                
+                closeBanModal();
+                loadUsers();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function unbanUser(userId) {
+            const sessionData = JSON.parse(localStorage.getItem(CONFIG.adminPasswordStorageKey));
+            
+            try {
+                await fetch(`${API_URL}/api/admin/unban`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionData.token}`
+                    },
+                    body: JSON.stringify({ userId })
+                });
+                
+                loadUsers();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+
+        async function checkUserStatus() {
+            const deviceId = getDeviceId();
+            const session = localStorage.getItem(CONFIG.userSessionKey);
+            
+            if (session) {
+                const data = JSON.parse(session);
+                if (new Date(data.expires) > new Date() && data.status === 'approved') {
+                    currentUserId = data.userId;
+                    return true;
+                }
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/user/status?deviceId=${deviceId}`);
+                const data = await response.json();
+                
+                if (data.status === 'approved') {
+                    const expires = new Date();
+                    expires.setDate(expires.getDate() + CONFIG.userSessionDays);
+                    
+                    currentUserId = data.userId;
+                    localStorage.setItem(CONFIG.userSessionKey, JSON.stringify({
+                        userId: data.userId,
+                        status: 'approved',
+                        expires: expires.toISOString()
+                    }));
+                    return true;
+                } else if (data.status === 'pending') {
+                    document.getElementById('waitingModal').classList.remove('active');
+                    showWaitingModal(true);
+                    return false;
+                } else if (data.status === 'rejected') {
+                    document.getElementById('waitingModal').classList.remove('active');
+                    showRejectedModal(data.rejectionMessage, data.rejectionCount);
+                    return false;
+                } else if (data.status === 'banned') {
+                    document.getElementById('waitingModal').classList.remove('active');
+                    showBannedModal(data.banReason, data.banType, data.banUntil);
+                    return false;
+                } else {
+                    showRegisterModal();
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showRegisterModal();
+                return false;
+            }
+        }
+
+        async function checkBanStatus() {
+            const deviceId = getDeviceId();
+            
+            try {
+                const response = await fetch(`${API_URL}/api/user/status?deviceId=${deviceId}`);
+                const data = await response.json();
+                
+                if (data.status === 'banned') {
+                    showBannedModal(data.banReason, data.banType, data.banUntil);
+                }
+            } catch (error) {
+                console.error('Error checking ban status:', error);
+            }
+        }
+
+        async function updateUserActivity() {
+            if (!currentUserId) return;
+            
+            try {
+                await fetch(`${API_URL}/api/user/activity`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: currentUserId,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+            } catch (error) {
+                console.error('Error updating activity:', error);
+            }
+        }
+
+        function startBanChecking() {
+            if (banCheckInterval) {
+                clearInterval(banCheckInterval);
+            }
+            banCheckInterval = setInterval(checkBanStatus, 5000);
+        }checkBanStatus();
+
+        function startActivityTracking() {
+            if (activityUpdateInterval) {
+                clearInterval(activityUpdateInterval);
+            }
+            updateUserActivity();
+            activityUpdateInterval = setInterval(updateUserActivity, 30000);
+        }
+
+        function stopIntervals() {
+            if (banCheckInterval) {
+                clearInterval(banCheckInterval);
+                banCheckInterval = null;
+            }
+            if (activityUpdateInterval) {
+                clearInterval(activityUpdateInterval);
+                activityUpdateInterval = null;
+            }
+        }
+
+        function showRegisterModal() {
+            document.getElementById('registerModal').classList.add('active');
+            document.getElementById('registerName').focus();
+        }
+
+        async function submitRegistration() {
+            const username = document.getElementById('registerName').value.trim();
+            if (!username) {
+                alert('Por favor ingresa tu nombre');
+                return;
+            }
+            
+            const deviceId = getDeviceId();
+            
+            try {
+                const response = await fetch(`${API_URL}/api/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        deviceId,
+                        username,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    alert(data.message || 'Error al registrar');
+                    return;
+                }
+                
+                document.getElementById('registerModal').classList.remove('active');
+                
+                if (data.status === 'pending') {
+                    showWaitingModal(false);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al enviar el registro');
+            }
+        }
+
+        function showWaitingModal(isReturning = false) {
+            const waitingMsg = document.getElementById('waitingMessage');
+            if (isReturning) {
+                waitingMsg.textContent = 'Tu solicitud sigue pendiente. Espera la aprobación del administrador.';
+            } else {
+                waitingMsg.textContent = 'Tu solicitud ha sido enviada. Espera la aprobación del administrador.';
+            }
+            
+            document.getElementById('waitingModal').classList.add('active');
+            
+            setTimeout(async () => {
+                const authorized = await checkUserStatus();
+                if (authorized) {
+                    document.getElementById('waitingModal').classList.remove('active');
+                    document.getElementById('searchInput').focus();
+                    startBanChecking();
+                    startActivityTracking();
+                }
+            }, 5000);
+        }
+
+        function showRejectedModal(message, count) {
+            document.getElementById('rejectionMessage').textContent = message || 'Tu solicitud ha sido rechazada.';
+            
+            if (count >= 3) {
+                showBannedModal('Has sido bloqueado por múltiples rechazos.');
+            } else {
+                document.getElementById('rejectedModal').classList.add('active');
+            }
+        }
+
+        function showBannedModal(reason, banType, banUntil) {
+            stopIntervals();
+            const modal = document.getElementById('bannedModal');
+            const banInfo = document.getElementById('banInfo');
+            
+            if (banType === 'perm') {
+                banInfo.textContent = 'Has sido bloqueado permanentemente.';
+            } else if (banUntil) {
+                const until = new Date(banUntil);
+                banInfo.textContent = `Has sido bloqueado hasta: ${until.toLocaleString()}`;
+            } else {
+                banInfo.textContent = 'Has sido bloqueado.';
+            }
+            
+            if (reason) {
+                banInfo.textContent += ` Razón: ${reason}`;
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function retryRegistration() {
+            document.getElementById('rejectedModal').classList.remove('active');
+            showRegisterModal();
+        }
+
+        async function submitUnbanCode() {
+            const code = document.getElementById('unbanCode').value.trim();
+            const deviceId = getDeviceId();
+            
+            try {
+                const response = await fetch(`${API_URL}/api/unban/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ deviceId, code })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('bannedModal').classList.remove('active');
+                    document.getElementById('unbanCode').value = '';
+                    const authorized = await checkUserStatus();
+                    if (authorized) {
+                        startBanChecking();
+                        startActivityTracking();
+                    }
+                } else {
+                    alert('Código inválido');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al verificar el código');
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleSearch();
+            }
+        });
+
+        document.getElementById('bookmarkUrl').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                saveBookmark();
+            }
+        });
+
+        document.getElementById('registerName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                submitRegistration();
+            }
+        });
+
+        document.getElementById('adminPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verifyAdminPassword();
+            }
+        });
+
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    const noCloseModals = ['registerModal', 'waitingModal', 'bannedModal', 'rejectedModal'];
+                    if (!noCloseModals.includes(this.id)) {
+                        this.classList.remove('active');
+                    }
+                }
+            });
+        });
+
+        window.addEventListener('pageshow', function(event) {
+            document.getElementById('loadingOverlay').classList.remove('active');
+        });
+
+        window.addEventListener('load', async () => {
+            createParticles();
+            const settings = loadSettings();
+            applySettings(settings);
+            loadBookmarks();
+            
+            const authorized = await checkUserStatus();
+            if (authorized) {
+                document.getElementById('searchInput').focus();
+                startBanChecking();
+                startActivityTracking();
+            }
+            
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                    const settings = loadSettings();
+                    if (settings.colorMode === 'auto') {
+                        applySettings(settings);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
