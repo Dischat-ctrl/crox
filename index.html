@@ -661,6 +661,7 @@
 
                 setTimeout(() => {
                     window.location.href = url;
+                   loadingOverlay.classList.remove('active');
                 }, 800);
             }
         }
